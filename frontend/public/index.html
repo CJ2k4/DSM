@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Basic Meta -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#007bff" />
+
+    <!-- SEO -->
+    <meta name="description" content="DSM - Decentralized Social Media Platform" />
+    <meta name="keywords" content="social media, decentralized, DSM, react app" />
+    <meta name="author" content="Dhanush" />
+
+    <!-- Title -->
+    <title>DSM 🌐 | Decentralized Social Media</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <!-- Basic Styling -->
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Poppins', sans-serif;
+        background-color: #f5f7fa;
+        color: #333;
+      }
+
+      #root {
+        min-height: 100vh;
+      }
+
+      /* Loading Screen */
+      .loader {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-size: 18px;
+        color: #555;
+      }
+    </style>
+  </head>
+
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+
+    <!-- React App Root -->
+    <div id="root"></div>
+
+<div class="loader" id="loader">Loading DSM...</div>
+
+<script>
+  window.addEventListener("load", () => {
+    const loader = document.getElementById("loader");
+    if (loader) loader.style.display = "none";
+  });
+</script>
+  </body>
+</html>
