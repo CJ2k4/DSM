@@ -1,6 +1,8 @@
 package com.DSM.Platform.post;
 
+import com.DSM.Platform.comment.CommentRepository;
 import com.DSM.Platform.common.exception.ApiException;
+import com.DSM.Platform.like.LikeRepository;
 import com.DSM.Platform.post.dto.CreatePostRequest;
 import com.DSM.Platform.post.dto.PostResponse;
 import com.DSM.Platform.security.AuthenticatedUser;
@@ -21,10 +23,19 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final LikeRepository likeRepository;
+    private final CommentRepository commentRepository;
 
-    public PostService(PostRepository postRepository, UserRepository userRepository) {
+    public PostService(
+            PostRepository postRepository,
+            UserRepository userRepository,
+            LikeRepository likeRepository,
+            CommentRepository commentRepository
+    ) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
+        this.likeRepository = likeRepository;
+        this.commentRepository = commentRepository;
     }
 
     @Transactional
@@ -34,7 +45,7 @@ public class PostService {
         String imageUrl = StringUtils.hasText(request.imageUrl()) ? request.imageUrl().trim() : null;
         Post post = postRepository.save(new Post(author, request.content().trim(), imageUrl));
 
-        return PostResponse.from(post);
+        return toResponse(post, principal.id());
     }
 
     @Transactional
@@ -52,14 +63,21 @@ public class PostService {
     @Transactional(readOnly = true)
     public Page<PostResponse> getFeed(AuthenticatedUser principal, Pageable pageable) {
         return postRepository.findFeed(principal.id(), pageable)
-                .map(PostResponse::from);
+                .map(post -> toResponse(post, principal.id()));
     }
 
     @Transactional(readOnly = true)
-    public Page<PostResponse> getUserPosts(String username, Pageable pageable) {
+    public Page<PostResponse> getUserPosts(String username, UUID viewerId, Pageable pageable) {
         User author = findActiveUserByUsername(username);
         return postRepository.findByAuthorIdOrderByCreatedAtDesc(author.getId(), pageable)
-                .map(PostResponse::from);
+                .map(post -> toResponse(post, viewerId));
+    }
+
+    private PostResponse toResponse(Post post, UUID viewerId) {
+        long likeCount = likeRepository.countByPostId(post.getId());
+        long commentCount = commentRepository.countByPostId(post.getId());
+        boolean likedByMe = viewerId != null && likeRepository.existsByPostIdAndUserId(post.getId(), viewerId);
+        return PostResponse.from(post, likeCount, commentCount, likedByMe);
     }
 
     private User findActiveUserById(UUID id) {
