@@ -84,6 +84,13 @@ public class User {
         this.displayName = displayName;
     }
 
+    public void updateProfile(String displayName, String bio, String avatarUrl, String bannerUrl) {
+        this.displayName = displayName;
+        this.bio = bio;
+        this.avatarUrl = avatarUrl;
+        this.bannerUrl = bannerUrl;
+    }
+
     public UUID getId() {
         return id;
     }
