@@ -65,6 +65,11 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  // Merge profile edits (display name, avatar, …) into the current user.
+  const updateUser = useCallback((partial) => {
+    setUser((prev) => (prev ? { ...prev, ...partial } : prev));
+  }, []);
+
   const value = useMemo(
     () => ({
       user,
@@ -73,8 +78,9 @@ export function AuthProvider({ children }) {
       login,
       register,
       logout,
+      updateUser,
     }),
-    [user, loading, login, register, logout]
+    [user, loading, login, register, logout, updateUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

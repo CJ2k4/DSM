@@ -1,10 +1,15 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { deletePost, likePost, unlikePost } from "../api/posts";
 import { relativeTime } from "../utils/time";
+import Avatar from "./Avatar";
+import CommentSection from "./CommentSection";
 
 export default function PostCard({ post, currentUserId, onDeleted }) {
   const [liked, setLiked] = useState(post.likedByMe);
   const [likeCount, setLikeCount] = useState(post.likeCount);
+  const [commentCount, setCommentCount] = useState(post.commentCount);
+  const [showComments, setShowComments] = useState(false);
   const [busy, setBusy] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -43,21 +48,20 @@ export default function PostCard({ post, currentUserId, onDeleted }) {
   return (
     <article className="rounded-2xl bg-white p-4 shadow-sm">
       <div className="mb-2 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700">
-            {(post.author?.displayName || post.author?.username || "?")
-              .charAt(0)
-              .toUpperCase()}
-          </div>
+        <Link
+          to={`/profile/${post.author?.username}`}
+          className="group flex items-center gap-2"
+        >
+          <Avatar user={post.author} className="h-9 w-9 text-sm" />
           <div className="leading-tight">
-            <div className="text-sm font-medium text-slate-900">
+            <div className="text-sm font-medium text-slate-900 group-hover:underline">
               {post.author?.displayName}
             </div>
             <div className="text-xs text-slate-400">
               @{post.author?.username} · {relativeTime(post.createdAt)}
             </div>
           </div>
-        </div>
+        </Link>
         {isOwner && (
           <button
             onClick={handleDelete}
@@ -92,11 +96,24 @@ export default function PostCard({ post, currentUserId, onDeleted }) {
           <span>{liked ? "♥" : "♡"}</span>
           <span>{likeCount}</span>
         </button>
-        <span className="flex items-center gap-1 text-slate-500">
+        <button
+          onClick={() => setShowComments((open) => !open)}
+          className={`flex items-center gap-1 transition ${
+            showComments ? "text-blue-600" : "text-slate-500 hover:text-blue-600"
+          }`}
+        >
           <span>💬</span>
-          <span>{post.commentCount}</span>
-        </span>
+          <span>{commentCount}</span>
+        </button>
       </div>
+
+      {showComments && (
+        <CommentSection
+          postId={post.id}
+          postOwnerId={post.author?.id}
+          onCountChange={(delta) => setCommentCount((c) => c + delta)}
+        />
+      )}
     </article>
   );
 }

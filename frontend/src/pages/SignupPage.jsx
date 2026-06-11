@@ -77,10 +77,14 @@ export default function SignupPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
+            <label
+              htmlFor="signup-display-name"
+              className="mb-1 block text-sm font-medium text-slate-700"
+            >
               Display name
             </label>
             <input
+              id="signup-display-name"
               type="text"
               value={form.displayName}
               onChange={update("displayName")}
@@ -89,8 +93,14 @@ export default function SignupPage() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Username</label>
+            <label
+              htmlFor="signup-username"
+              className="mb-1 block text-sm font-medium text-slate-700"
+            >
+              Username
+            </label>
             <input
+              id="signup-username"
               type="text"
               value={form.username}
               onChange={update("username")}
@@ -99,8 +109,14 @@ export default function SignupPage() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Email</label>
+            <label
+              htmlFor="signup-email"
+              className="mb-1 block text-sm font-medium text-slate-700"
+            >
+              Email
+            </label>
             <input
+              id="signup-email"
               type="email"
               value={form.email}
               onChange={update("email")}
@@ -110,8 +126,14 @@ export default function SignupPage() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Password</label>
+            <label
+              htmlFor="signup-password"
+              className="mb-1 block text-sm font-medium text-slate-700"
+            >
+              Password
+            </label>
             <input
+              id="signup-password"
               type="password"
               value={form.password}
               onChange={update("password")}

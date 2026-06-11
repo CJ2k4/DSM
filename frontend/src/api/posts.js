@@ -4,6 +4,12 @@ export function getFeed(page = 0, size = 20) {
   return client.get("/posts/feed", { params: { page, size } }).then((res) => res.data);
 }
 
+export function getUserPosts(username, page = 0, size = 20) {
+  return client
+    .get(`/posts/user/${username}`, { params: { page, size } })
+    .then((res) => res.data);
+}
+
 export function createPost({ content, imageUrl }) {
   return client
     .post("/posts", { content, imageUrl: imageUrl || null })
