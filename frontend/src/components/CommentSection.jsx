@@ -5,6 +5,7 @@ import { extractErrorMessage } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
 import { relativeTime } from "../utils/time";
 import Avatar from "./Avatar";
+import { TrashIcon } from "./icons";
 
 export default function CommentSection({ postId, postOwnerId, onCountChange }) {
   const { user } = useAuth();
@@ -88,46 +89,47 @@ export default function CommentSection({ postId, postOwnerId, onCountChange }) {
   }
 
   return (
-    <div className="mt-3 border-t border-slate-100 pt-3">
+    <div className="mt-3 animate-fade-up border-t border-white/[0.06] pt-3">
       {error && (
-        <div className="mb-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
-          {error}
-        </div>
+        <div className="error-banner mb-2 px-3 py-2 text-xs">{error}</div>
       )}
 
       {loading ? (
-        <div className="py-2 text-center text-xs text-slate-400">
-          Loading comments…
+        <div className="space-y-2 py-1">
+          <div className="skeleton h-9 w-full rounded-xl" />
+          <div className="skeleton h-9 w-3/4 rounded-xl" />
         </div>
       ) : (
         <div className="space-y-3">
           {comments.length === 0 && (
-            <p className="text-xs text-slate-400">No comments yet. Be the first!</p>
+            <p className="text-xs text-slate-500">No comments yet. Be the first!</p>
           )}
           {comments.map((comment) => (
             <div key={comment.id} className="flex items-start gap-2">
               <Avatar user={comment.author} className="h-7 w-7 text-xs" />
-              <div className="min-w-0 flex-1 rounded-xl bg-slate-50 px-3 py-2">
+              <div className="min-w-0 flex-1 rounded-xl border border-white/[0.05] bg-white/[0.03] px-3 py-2">
                 <div className="flex items-center justify-between gap-2">
                   <Link
                     to={`/profile/${comment.author?.username}`}
-                    className="truncate text-xs font-medium text-slate-900 hover:underline"
+                    className="truncate text-xs font-semibold text-slate-200 hover:underline"
                   >
                     {comment.author?.displayName}
-                    <span className="ml-1 font-normal text-slate-400">
+                    <span className="ml-1 font-normal text-slate-500">
                       @{comment.author?.username} · {relativeTime(comment.createdAt)}
                     </span>
                   </Link>
                   {canDelete(comment) && (
                     <button
                       onClick={() => handleDelete(comment.id)}
-                      className="text-xs text-slate-400 transition hover:text-red-600"
+                      title="Delete comment"
+                      className="rounded p-1 text-slate-600 transition hover:bg-rose-500/10 hover:text-rose-400"
                     >
-                      Delete
+                      <TrashIcon className="h-3.5 w-3.5" />
+                      <span className="sr-only">Delete</span>
                     </button>
                   )}
                 </div>
-                <p className="whitespace-pre-wrap break-words text-sm text-slate-800">
+                <p className="whitespace-pre-wrap break-words text-sm text-slate-300">
                   {comment.content}
                 </p>
               </div>
@@ -137,7 +139,7 @@ export default function CommentSection({ postId, postOwnerId, onCountChange }) {
             <button
               onClick={handleLoadMore}
               disabled={loadingMore}
-              className="w-full rounded-lg border border-slate-200 py-1.5 text-xs font-medium text-slate-500 transition hover:bg-slate-50 disabled:opacity-60"
+              className="btn-ghost w-full py-1.5 text-xs"
             >
               {loadingMore ? "Loading…" : "Load more comments"}
             </button>
@@ -152,12 +154,12 @@ export default function CommentSection({ postId, postOwnerId, onCountChange }) {
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Write a comment…"
           maxLength={500}
-          className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="field py-2"
         />
         <button
           type="submit"
           disabled={submitting || !draft.trim()}
-          className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
+          className="btn-primary px-3.5 py-2"
         >
           {submitting ? "…" : "Post"}
         </button>

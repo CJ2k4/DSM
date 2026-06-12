@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { extractErrorMessage } from "../api/client";
+import AuthShell from "../components/AuthShell";
 
 const USERNAME_PATTERN = /^[A-Za-z0-9_.]+$/;
 
@@ -64,23 +65,18 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm">
-        <h1 className="mb-1 text-2xl font-semibold text-slate-900">Join DSM</h1>
-        <p className="mb-6 text-sm text-slate-500">Create your account.</p>
+    <AuthShell>
+      <div className="glass p-8">
+        <h1 className="mb-1 font-display text-2xl font-bold tracking-tight text-white">
+          Join DSM
+        </h1>
+        <p className="mb-6 text-sm text-slate-400">Create your account.</p>
 
-        {error && (
-          <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </div>
-        )}
+        {error && <div className="error-banner mb-4">{error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label
-              htmlFor="signup-display-name"
-              className="mb-1 block text-sm font-medium text-slate-700"
-            >
+            <label htmlFor="signup-display-name" className="field-label">
               Display name
             </label>
             <input
@@ -89,14 +85,11 @@ export default function SignupPage() {
               value={form.displayName}
               onChange={update("displayName")}
               maxLength={80}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="field"
             />
           </div>
           <div>
-            <label
-              htmlFor="signup-username"
-              className="mb-1 block text-sm font-medium text-slate-700"
-            >
+            <label htmlFor="signup-username" className="field-label">
               Username
             </label>
             <input
@@ -105,14 +98,11 @@ export default function SignupPage() {
               value={form.username}
               onChange={update("username")}
               required
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="field"
             />
           </div>
           <div>
-            <label
-              htmlFor="signup-email"
-              className="mb-1 block text-sm font-medium text-slate-700"
-            >
+            <label htmlFor="signup-email" className="field-label">
               Email
             </label>
             <input
@@ -122,14 +112,11 @@ export default function SignupPage() {
               onChange={update("email")}
               required
               autoComplete="email"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="field"
             />
           </div>
           <div>
-            <label
-              htmlFor="signup-password"
-              className="mb-1 block text-sm font-medium text-slate-700"
-            >
+            <label htmlFor="signup-password" className="field-label">
               Password
             </label>
             <input
@@ -139,26 +126,22 @@ export default function SignupPage() {
               onChange={update("password")}
               required
               autoComplete="new-password"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="field"
             />
-            <p className="mt-1 text-xs text-slate-400">At least 8 characters.</p>
+            <p className="mt-1.5 text-xs text-slate-500">At least 8 characters.</p>
           </div>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
-          >
+          <button type="submit" disabled={submitting} className="btn-primary w-full py-2.5">
             {submitting ? "Creating account…" : "Sign up"}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-slate-500">
           Already have an account?{" "}
-          <Link to="/login" className="font-medium text-blue-600 hover:underline">
+          <Link to="/login" className="font-medium text-violet-300 hover:underline">
             Sign in
           </Link>
         </p>
       </div>
-    </div>
+    </AuthShell>
   );
 }

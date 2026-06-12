@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import Navbar from "../components/Navbar";
+import Layout from "../components/Layout";
 import CreatePostForm from "../components/CreatePostForm";
 import PostCard from "../components/PostCard";
+import PostSkeleton from "../components/PostSkeleton";
 import { getFeed } from "../api/posts";
 import { extractErrorMessage } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
@@ -58,43 +59,47 @@ export default function FeedPage() {
   }
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      <main className="mx-auto max-w-2xl space-y-4 px-4 py-6">
-        <CreatePostForm onCreated={handleCreated} />
+    <Layout>
+      <CreatePostForm onCreated={handleCreated} />
 
-        {error && (
-          <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
-        )}
+      {error && <div className="error-banner">{error}</div>}
 
-        {loading ? (
-          <div className="py-10 text-center text-slate-400">Loading feed…</div>
-        ) : posts.length === 0 ? (
-          <div className="rounded-2xl bg-white p-8 text-center text-sm text-slate-500 shadow-sm">
-            Your feed is empty. Create your first post above, or follow people to see theirs.
-          </div>
-        ) : (
-          <>
-            {posts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                currentUserId={user?.id}
-                onDeleted={handleDeleted}
-              />
-            ))}
-            {!last && (
-              <button
-                onClick={handleLoadMore}
-                disabled={loadingMore}
-                className="w-full rounded-lg border border-slate-300 bg-white py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-60"
-              >
-                {loadingMore ? "Loading…" : "Load more"}
-              </button>
-            )}
-          </>
-        )}
-      </main>
-    </div>
+      {loading ? (
+        <>
+          <PostSkeleton />
+          <PostSkeleton />
+          <PostSkeleton />
+        </>
+      ) : posts.length === 0 ? (
+        <div className="glass p-10 text-center">
+          <p className="font-display text-lg font-semibold text-white">
+            Your feed is quiet
+          </p>
+          <p className="mt-1.5 text-sm text-slate-400">
+            Create your first post above, or follow people to see theirs.
+          </p>
+        </div>
+      ) : (
+        <>
+          {posts.map((post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              currentUserId={user?.id}
+              onDeleted={handleDeleted}
+            />
+          ))}
+          {!last && (
+            <button
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+              className="btn-ghost w-full"
+            >
+              {loadingMore ? "Loading…" : "Load more"}
+            </button>
+          )}
+        </>
+      )}
+    </Layout>
   );
 }

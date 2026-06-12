@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import Aurora from "./components/Aurora";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import FeedPage from "./pages/FeedPage";
@@ -8,7 +9,9 @@ import SearchPage from "./pages/SearchPage";
 
 export default function App() {
   return (
-    <Routes>
+    <>
+      <Aurora />
+      <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route
@@ -37,6 +40,7 @@ export default function App() {
       />
       <Route path="/" element={<Navigate to="/feed" replace />} />
       <Route path="*" element={<Navigate to="/feed" replace />} />
-    </Routes>
+      </Routes>
+    </>
   );
 }

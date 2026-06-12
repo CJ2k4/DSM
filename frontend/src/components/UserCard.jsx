@@ -6,16 +6,16 @@ export default function UserCard({ user }) {
   return (
     <Link
       to={`/profile/${user.username}`}
-      className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm transition hover:bg-slate-50"
+      className="glass glass-hover flex items-center gap-3 p-4"
     >
       <Avatar user={user} className="h-12 w-12 text-base" />
       <div className="min-w-0 leading-tight">
-        <div className="truncate text-sm font-medium text-slate-900">
+        <div className="truncate text-sm font-semibold text-white">
           {user.displayName}
         </div>
-        <div className="text-xs text-slate-400">@{user.username}</div>
+        <div className="text-xs text-slate-500">@{user.username}</div>
         {user.bio && (
-          <p className="mt-1 truncate text-xs text-slate-500">{user.bio}</p>
+          <p className="mt-1 truncate text-xs text-slate-400">{user.bio}</p>
         )}
       </div>
     </Link>

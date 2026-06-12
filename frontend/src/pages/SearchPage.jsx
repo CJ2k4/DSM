@@ -1,8 +1,9 @@
 import { useState } from "react";
-import Navbar from "../components/Navbar";
+import Layout from "../components/Layout";
 import UserCard from "../components/UserCard";
 import { searchUsers } from "../api/users";
 import { extractErrorMessage } from "../api/client";
+import { SearchIcon } from "../components/icons";
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
@@ -49,13 +50,13 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      <main className="mx-auto max-w-2xl space-y-4 px-4 py-6">
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <label htmlFor="user-search" className="sr-only">
-            Search users
-          </label>
+    <Layout>
+      <form onSubmit={handleSubmit} className="flex gap-2">
+        <label htmlFor="user-search" className="sr-only">
+          Search users
+        </label>
+        <div className="relative w-full">
+          <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
           <input
             id="user-search"
             type="search"
@@ -63,46 +64,50 @@ export default function SearchPage() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search people by name or username…"
             maxLength={80}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="field pl-10"
           />
-          <button
-            type="submit"
-            disabled={searching || !query.trim()}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
-          >
-            {searching ? "Searching…" : "Search"}
-          </button>
-        </form>
+        </div>
+        <button
+          type="submit"
+          disabled={searching || !query.trim()}
+          className="btn-primary shrink-0"
+        >
+          {searching ? "Searching…" : "Search"}
+        </button>
+      </form>
 
-        {error && (
-          <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
-        )}
+      {error && <div className="error-banner">{error}</div>}
 
-        {results === null ? (
-          <div className="py-10 text-center text-sm text-slate-400">
-            Find people to follow.
-          </div>
-        ) : results.length === 0 ? (
-          <div className="rounded-2xl bg-white p-8 text-center text-sm text-slate-500 shadow-sm">
-            No users found for “{query.trim()}”.
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {results.map((person) => (
-              <UserCard key={person.id} user={person} />
-            ))}
-            {!last && (
-              <button
-                onClick={handleLoadMore}
-                disabled={loadingMore}
-                className="w-full rounded-lg border border-slate-300 bg-white py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-60"
-              >
-                {loadingMore ? "Loading…" : "Load more"}
-              </button>
-            )}
-          </div>
-        )}
-      </main>
-    </div>
+      {results === null ? (
+        <div className="glass p-12 text-center">
+          <SearchIcon className="mx-auto h-8 w-8 text-slate-600" />
+          <p className="mt-3 font-display text-lg font-semibold text-white">
+            Find your people
+          </p>
+          <p className="mt-1 text-sm text-slate-400">
+            Search across the network by name or username.
+          </p>
+        </div>
+      ) : results.length === 0 ? (
+        <div className="glass p-10 text-center text-sm text-slate-400">
+          No users found for “{query.trim()}”.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {results.map((person) => (
+            <UserCard key={person.id} user={person} />
+          ))}
+          {!last && (
+            <button
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+              className="btn-ghost w-full"
+            >
+              {loadingMore ? "Loading…" : "Load more"}
+            </button>
+          )}
+        </div>
+      )}
+    </Layout>
   );
 }

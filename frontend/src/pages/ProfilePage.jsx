@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import Navbar from "../components/Navbar";
+import Layout from "../components/Layout";
 import Avatar from "../components/Avatar";
 import PostCard from "../components/PostCard";
+import PostSkeleton from "../components/PostSkeleton";
 import UserCard from "../components/UserCard";
 import EditProfileForm from "../components/EditProfileForm";
 import { extractErrorMessage } from "../api/client";
@@ -141,147 +142,139 @@ export default function ProfilePage() {
     tab === "Posts" ? postsTab : tab === "Followers" ? followersTab : followingTab;
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      <main className="mx-auto max-w-2xl space-y-4 px-4 py-6">
-        {loading ? (
-          <div className="py-10 text-center text-slate-400">Loading profile…</div>
-        ) : error && !profile ? (
-          <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
-        ) : (
-          <>
-            <section className="overflow-hidden rounded-2xl bg-white shadow-sm">
-              {profile.bannerUrl ? (
-                <img src={profile.bannerUrl} alt="" className="h-32 w-full object-cover" />
-              ) : (
-                <div className="h-20 bg-gradient-to-r from-blue-100 to-indigo-100" />
-              )}
-              <div className="p-4">
-                <div className="-mt-12 mb-3 flex items-end justify-between">
-                  <div className="rounded-full ring-4 ring-white">
-                    <Avatar user={profile} className="h-20 w-20 text-2xl" />
-                  </div>
-                  {profile.ownProfile ? (
-                    <button
-                      onClick={() => setEditing((open) => !open)}
-                      className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
-                    >
-                      {editing ? "Cancel" : "Edit profile"}
-                    </button>
-                  ) : (
-                    <button
-                      onClick={toggleFollow}
-                      disabled={followBusy}
-                      className={`rounded-lg px-4 py-1.5 text-sm font-medium transition disabled:opacity-60 ${
-                        profile.following
-                          ? "border border-slate-300 text-slate-600 hover:bg-slate-100"
-                          : "bg-blue-600 text-white hover:bg-blue-700"
-                      }`}
-                    >
-                      {profile.following ? "Unfollow" : "Follow"}
-                    </button>
-                  )}
-                </div>
-
-                <h1 className="text-xl font-semibold text-slate-900">
-                  {profile.displayName}
-                </h1>
-                <p className="text-sm text-slate-400">@{profile.username}</p>
-                {profile.bio && (
-                  <p className="mt-2 whitespace-pre-wrap break-words text-sm text-slate-700">
-                    {profile.bio}
-                  </p>
-                )}
-                <p className="mt-2 text-xs text-slate-400">
-                  Joined {joinedDate(profile.createdAt)}
-                </p>
-                <div className="mt-3 flex gap-4 text-sm text-slate-600">
-                  <span>
-                    <span className="font-semibold text-slate-900">
-                      {profile.followerCount}
-                    </span>{" "}
-                    Followers
-                  </span>
-                  <span>
-                    <span className="font-semibold text-slate-900">
-                      {profile.followingCount}
-                    </span>{" "}
-                    Following
-                  </span>
-                </div>
-
-                {error && (
-                  <div className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
-                    {error}
-                  </div>
-                )}
-
-                {editing && (
-                  <EditProfileForm profile={profile} onSaved={handleSaved} />
-                )}
-              </div>
-            </section>
-
-            <nav className="flex rounded-xl bg-white p-1 shadow-sm">
-              {TABS.map((name) => (
-                <button
-                  key={name}
-                  onClick={() => setTab(name)}
-                  className={`flex-1 rounded-lg py-2 text-sm font-medium transition ${
-                    tab === name
-                      ? "bg-blue-600 text-white"
-                      : "text-slate-500 hover:bg-slate-50"
-                  }`}
-                >
-                  {name}
-                </button>
-              ))}
-            </nav>
-
-            {activeTab.error && (
-              <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
-                {activeTab.error}
+    <Layout>
+      {loading ? (
+        <div className="glass p-4">
+          <div className="skeleton h-24 w-full rounded-xl" />
+          <div className="mt-4 flex items-center gap-3">
+            <div className="skeleton h-20 w-20 rounded-full" />
+            <div className="space-y-2">
+              <div className="skeleton h-4 w-40" />
+              <div className="skeleton h-3 w-24" />
+            </div>
+          </div>
+        </div>
+      ) : error && !profile ? (
+        <div className="error-banner">{error}</div>
+      ) : (
+        <>
+          <section className="glass overflow-hidden">
+            {profile.bannerUrl ? (
+              <img src={profile.bannerUrl} alt="" className="h-32 w-full object-cover" />
+            ) : (
+              <div className="relative h-24 overflow-hidden bg-gradient-to-r from-indigo-600/30 via-violet-600/25 to-cyan-500/25">
+                <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:20px_20px]" />
               </div>
             )}
-
-            {activeTab.loading ? (
-              <div className="py-10 text-center text-slate-400">Loading…</div>
-            ) : activeTab.items.length === 0 ? (
-              <div className="rounded-2xl bg-white p-8 text-center text-sm text-slate-500 shadow-sm">
-                {tab === "Posts"
-                  ? "No posts yet."
-                  : tab === "Followers"
-                    ? "No followers yet."
-                    : "Not following anyone yet."}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {tab === "Posts"
-                  ? activeTab.items.map((post) => (
-                      <PostCard
-                        key={post.id}
-                        post={post}
-                        currentUserId={currentUser?.id}
-                        onDeleted={handlePostDeleted}
-                      />
-                    ))
-                  : activeTab.items.map((person) => (
-                      <UserCard key={person.id} user={person} />
-                    ))}
-                {!activeTab.last && (
+            <div className="p-5">
+              <div className="-mt-14 mb-3 flex items-end justify-between">
+                <div className="rounded-full ring-4 ring-[#101018]">
+                  <Avatar user={profile} className="h-20 w-20 text-2xl" />
+                </div>
+                {profile.ownProfile ? (
                   <button
-                    onClick={activeTab.loadMore}
-                    disabled={activeTab.loadingMore}
-                    className="w-full rounded-lg border border-slate-300 bg-white py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-60"
+                    onClick={() => setEditing((open) => !open)}
+                    className="btn-ghost px-3 py-1.5"
                   >
-                    {activeTab.loadingMore ? "Loading…" : "Load more"}
+                    {editing ? "Cancel" : "Edit profile"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={toggleFollow}
+                    disabled={followBusy}
+                    className={
+                      profile.following ? "btn-ghost px-4 py-1.5" : "btn-primary px-5 py-1.5"
+                    }
+                  >
+                    {profile.following ? "Unfollow" : "Follow"}
                   </button>
                 )}
               </div>
-            )}
-          </>
-        )}
-      </main>
-    </div>
+
+              <h1 className="font-display text-xl font-bold tracking-tight text-white">
+                {profile.displayName}
+              </h1>
+              <p className="text-sm text-slate-500">@{profile.username}</p>
+              {profile.bio && (
+                <p className="mt-2.5 whitespace-pre-wrap break-words text-sm leading-relaxed text-slate-300">
+                  {profile.bio}
+                </p>
+              )}
+              <p className="mt-2.5 text-xs text-slate-500">
+                Joined {joinedDate(profile.createdAt)}
+              </p>
+              <div className="mt-3 flex gap-5 text-sm text-slate-400">
+                <span>
+                  <span className="font-semibold text-white">{profile.followerCount}</span>{" "}
+                  Followers
+                </span>
+                <span>
+                  <span className="font-semibold text-white">{profile.followingCount}</span>{" "}
+                  Following
+                </span>
+              </div>
+
+              {error && <div className="error-banner mt-3 px-3 py-2 text-xs">{error}</div>}
+
+              {editing && <EditProfileForm profile={profile} onSaved={handleSaved} />}
+            </div>
+          </section>
+
+          <nav className="glass flex p-1">
+            {TABS.map((name) => (
+              <button
+                key={name}
+                onClick={() => setTab(name)}
+                className={`flex-1 rounded-xl py-2 text-sm font-medium transition ${
+                  tab === name
+                    ? "bg-white/10 text-white shadow-inner"
+                    : "text-slate-500 hover:text-slate-300"
+                }`}
+              >
+                {name}
+              </button>
+            ))}
+          </nav>
+
+          {activeTab.error && <div className="error-banner">{activeTab.error}</div>}
+
+          {activeTab.loading ? (
+            <PostSkeleton />
+          ) : activeTab.items.length === 0 ? (
+            <div className="glass p-10 text-center text-sm text-slate-400">
+              {tab === "Posts"
+                ? "No posts yet."
+                : tab === "Followers"
+                  ? "No followers yet."
+                  : "Not following anyone yet."}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {tab === "Posts"
+                ? activeTab.items.map((post) => (
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      currentUserId={currentUser?.id}
+                      onDeleted={handlePostDeleted}
+                    />
+                  ))
+                : activeTab.items.map((person) => (
+                    <UserCard key={person.id} user={person} />
+                  ))}
+              {!activeTab.last && (
+                <button
+                  onClick={activeTab.loadMore}
+                  disabled={activeTab.loadingMore}
+                  className="btn-ghost w-full"
+                >
+                  {activeTab.loadingMore ? "Loading…" : "Load more"}
+                </button>
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </Layout>
   );
 }

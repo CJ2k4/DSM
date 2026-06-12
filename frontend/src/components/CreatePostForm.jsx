@@ -1,10 +1,14 @@
 import { useState } from "react";
 import { createPost } from "../api/posts";
 import { extractErrorMessage } from "../api/client";
+import { useAuth } from "../hooks/useAuth";
+import Avatar from "./Avatar";
+import { ImageIcon } from "./icons";
 
 const MAX_CONTENT = 1000;
 
 export default function CreatePostForm({ onCreated }) {
+  const { user } = useAuth();
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [showImage, setShowImage] = useState(false);
@@ -30,46 +34,55 @@ export default function CreatePostForm({ onCreated }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-2xl bg-white p-4 shadow-sm">
-      {error && (
-        <div className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder="What's happening?"
-        rows={3}
-        maxLength={MAX_CONTENT}
-        className="w-full resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-      />
+    <form onSubmit={handleSubmit} className="glass p-4">
+      {error && <div className="error-banner mb-3 px-3 py-2">{error}</div>}
+      <div className="flex items-start gap-3">
+        <Avatar user={user} className="h-9 w-9 text-sm" />
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="What's happening?"
+          rows={3}
+          maxLength={MAX_CONTENT}
+          className="w-full resize-none border-0 bg-transparent text-[15px] leading-relaxed text-white placeholder-slate-500 focus:outline-none focus:ring-0"
+        />
+      </div>
       {showImage && (
         <input
           type="url"
           value={imageUrl}
           onChange={(e) => setImageUrl(e.target.value)}
           placeholder="Image URL (optional)"
-          className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="field mt-2"
         />
       )}
-      <div className="mt-2 flex items-center justify-between">
-        <div className="flex items-center gap-3 text-xs text-slate-400">
+      <div className="mt-2 flex items-center justify-between border-t border-white/[0.06] pt-3">
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => setShowImage((v) => !v)}
-            className="font-medium text-slate-500 hover:text-blue-600"
+            title={showImage ? "Remove image" : "Add image"}
+            className={`rounded-lg p-2 transition ${
+              showImage
+                ? "bg-violet-500/10 text-violet-300"
+                : "text-slate-500 hover:bg-white/5 hover:text-violet-300"
+            }`}
           >
-            {showImage ? "Remove image" : "Add image"}
+            <ImageIcon />
+            <span className="sr-only">{showImage ? "Remove image" : "Add image"}</span>
           </button>
-          <span>
+          <span
+            className={`text-xs tabular-nums ${
+              content.length > MAX_CONTENT - 50 ? "text-amber-400" : "text-slate-600"
+            }`}
+          >
             {content.length}/{MAX_CONTENT}
           </span>
         </div>
         <button
           type="submit"
           disabled={submitting || !content.trim()}
-          className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
+          className="btn-primary px-5 py-1.5"
         >
           {submitting ? "Posting…" : "Post"}
         </button>

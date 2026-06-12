@@ -36,16 +36,14 @@ export default function EditProfileForm({ profile, onSaved }) {
     }
   }
 
-  const inputClass =
-    "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
-
   return (
-    <form onSubmit={handleSubmit} className="mt-4 space-y-3 border-t border-slate-100 pt-4">
-      {error && (
-        <div className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{error}</div>
-      )}
+    <form
+      onSubmit={handleSubmit}
+      className="mt-4 animate-fade-up space-y-3 border-t border-white/[0.06] pt-4"
+    >
+      {error && <div className="error-banner px-3 py-2 text-xs">{error}</div>}
       <div>
-        <label htmlFor="edit-display-name" className="mb-1 block text-sm font-medium text-slate-700">
+        <label htmlFor="edit-display-name" className="field-label">
           Display name
         </label>
         <input
@@ -54,11 +52,11 @@ export default function EditProfileForm({ profile, onSaved }) {
           value={form.displayName}
           onChange={update("displayName")}
           maxLength={80}
-          className={inputClass}
+          className="field"
         />
       </div>
       <div>
-        <label htmlFor="edit-bio" className="mb-1 block text-sm font-medium text-slate-700">
+        <label htmlFor="edit-bio" className="field-label">
           Bio
         </label>
         <textarea
@@ -67,11 +65,11 @@ export default function EditProfileForm({ profile, onSaved }) {
           onChange={update("bio")}
           maxLength={500}
           rows={3}
-          className={`${inputClass} resize-none`}
+          className="field resize-none"
         />
       </div>
       <div>
-        <label htmlFor="edit-avatar-url" className="mb-1 block text-sm font-medium text-slate-700">
+        <label htmlFor="edit-avatar-url" className="field-label">
           Avatar URL
         </label>
         <input
@@ -81,11 +79,11 @@ export default function EditProfileForm({ profile, onSaved }) {
           onChange={update("avatarUrl")}
           maxLength={2048}
           placeholder="https://…"
-          className={inputClass}
+          className="field"
         />
       </div>
       <div>
-        <label htmlFor="edit-banner-url" className="mb-1 block text-sm font-medium text-slate-700">
+        <label htmlFor="edit-banner-url" className="field-label">
           Banner URL
         </label>
         <input
@@ -95,14 +93,10 @@ export default function EditProfileForm({ profile, onSaved }) {
           onChange={update("bannerUrl")}
           maxLength={2048}
           placeholder="https://…"
-          className={inputClass}
+          className="field"
         />
       </div>
-      <button
-        type="submit"
-        disabled={saving}
-        className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
-      >
+      <button type="submit" disabled={saving} className="btn-primary w-full">
         {saving ? "Saving…" : "Save changes"}
       </button>
     </form>
