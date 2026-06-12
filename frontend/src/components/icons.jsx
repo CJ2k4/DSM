@@ -84,6 +84,17 @@ export function LogoutIcon({ className = "h-[18px] w-[18px]" }) {
   );
 }
 
+export function NetworkIcon({ className = "h-[18px] w-[18px]" }) {
+  return (
+    <svg {...base} className={className}>
+      <circle cx="12" cy="5" r="2.2" />
+      <circle cx="5" cy="18" r="2.2" />
+      <circle cx="19" cy="18" r="2.2" />
+      <path d="M10.9 6.9 6.2 16M13.1 6.9l4.7 9.1M7.2 18h9.6" />
+    </svg>
+  );
+}
+
 export function FeedIcon({ className = "h-[18px] w-[18px]" }) {
   return (
     <svg {...base} className={className}>

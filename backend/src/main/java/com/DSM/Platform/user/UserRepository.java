@@ -29,4 +29,11 @@ public interface UserRepository extends JpaRepository<User, UUID> {
               )
             """)
     Page<User> searchActiveUsers(@Param("query") String query, Pageable pageable);
+
+    @Query("""
+            select user from User user
+            where user.status = com.DSM.Platform.user.UserStatus.ACTIVE
+            order by user.createdAt desc
+            """)
+    Page<User> findActiveUsers(Pageable pageable);
 }

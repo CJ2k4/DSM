@@ -1,7 +1,7 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import Avatar from "./Avatar";
-import { FeedIcon, LogoMark, LogoutIcon, SearchIcon } from "./icons";
+import { FeedIcon, LogoMark, LogoutIcon, NetworkIcon, SearchIcon } from "./icons";
 
 function navLinkClass({ isActive }) {
   return `flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
@@ -36,6 +36,10 @@ export default function Navbar() {
             <NavLink to="/search" className={navLinkClass}>
               <SearchIcon className="h-4 w-4" />
               <span className="hidden sm:inline">Search</span>
+            </NavLink>
+            <NavLink to="/federation" className={navLinkClass}>
+              <NetworkIcon className="h-4 w-4" />
+              <span className="hidden sm:inline">Network</span>
             </NavLink>
           </nav>
         </div>

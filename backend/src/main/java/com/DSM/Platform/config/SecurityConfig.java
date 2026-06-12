@@ -74,6 +74,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/posts/*/comments").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/posts/*/comments").permitAll()
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/comments/*").authenticated()
+                        // Server-to-server federation: public data + peer announce only.
+                        .requestMatchers(HttpMethod.GET, "/federation/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/federation/announce").permitAll()
+                        .requestMatchers("/api/v1/federation/**").authenticated()
                         .requestMatchers("/actuator/health", "/h2-console/**").permitAll()
                         .anyRequest().authenticated()
                 )

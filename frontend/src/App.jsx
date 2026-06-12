@@ -6,6 +6,7 @@ import SignupPage from "./pages/SignupPage";
 import FeedPage from "./pages/FeedPage";
 import ProfilePage from "./pages/ProfilePage";
 import SearchPage from "./pages/SearchPage";
+import FederationPage from "./pages/FederationPage";
 
 export default function App() {
   return (
@@ -27,6 +28,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <SearchPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/federation"
+        element={
+          <ProtectedRoute>
+            <FederationPage />
           </ProtectedRoute>
         }
       />
