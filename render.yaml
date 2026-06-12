@@ -1,0 +1,36 @@
+# Render blueprint: deploys the DSM backend as a Docker web service.
+# Database lives on Neon (free tier) — you'll be prompted for the three
+# SPRING_DATASOURCE_* values and the two public-URL values at deploy time.
+# See docs/DEPLOYMENT.md for the full walkthrough.
+services:
+  - type: web
+    name: dsm-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SERVER_PORT
+        value: "8080"
+      - key: SPRING_PROFILES_ACTIVE
+        value: postgres
+      - key: JWT_SECRET
+        generateValue: true
+      # Neon connection (jdbc:postgresql://<host>/<db>?sslmode=require — drop
+      # any channel_binding=require, that's libpq-only syntax, not JDBC).
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      # This service's own public URL, e.g. https://dsm-backend.onrender.com
+      - key: FEDERATION_SELF_BASE_URL
+        sync: false
+      # Your Vercel frontend domain — required for REST CORS AND the
+      # WebSocket handshake, e.g. https://dsm.vercel.app
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: FEDERATION_SERVER_NAME
+        value: DSM Node

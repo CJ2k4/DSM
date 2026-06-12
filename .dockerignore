@@ -1,0 +1,12 @@
+# Backend image build context = repo root; keep it lean.
+.git
+.DS_Store
+docs/
+*.pdf
+*.md
+CLAUDE.md
+CONTEXT.md
+backend/target/
+backend/generate_pdf.py
+frontend/node_modules/
+frontend/dist/
