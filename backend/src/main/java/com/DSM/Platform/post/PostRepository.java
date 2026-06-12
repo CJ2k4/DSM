@@ -24,4 +24,20 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
             order by post.createdAt desc
             """)
     Page<Post> findFeed(@Param("viewerId") UUID viewerId, Pageable pageable);
+
+    // join fetch so the federation export can map authors outside a transaction
+    // (open-in-view is disabled); fetch + Pageable requires an explicit countQuery.
+    @Query(
+            value = """
+                    select post from Post post
+                    join fetch post.author
+                    where post.author.status = com.DSM.Platform.user.UserStatus.ACTIVE
+                    order by post.createdAt desc
+                    """,
+            countQuery = """
+                    select count(post) from Post post
+                    where post.author.status = com.DSM.Platform.user.UserStatus.ACTIVE
+                    """
+    )
+    Page<Post> findPublicPosts(Pageable pageable);
 }

@@ -2,14 +2,18 @@ import { useCallback, useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import CreatePostForm from "../components/CreatePostForm";
 import PostCard from "../components/PostCard";
+import RemotePostCard from "../components/RemotePostCard";
 import PostSkeleton from "../components/PostSkeleton";
 import { getFeed } from "../api/posts";
+import { getTimeline } from "../api/federation";
 import { extractErrorMessage } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
 
-export default function FeedPage() {
-  const { user } = useAuth();
-  const [posts, setPosts] = useState([]);
+const TABS = ["Following", "Global"];
+
+// Paginated list state for one feed source.
+function useFeedSource(fetcher) {
+  const [items, setItems] = useState([]);
   const [page, setPage] = useState(0);
   const [last, setLast] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -17,10 +21,11 @@ export default function FeedPage() {
   const [error, setError] = useState(null);
 
   const loadPage = useCallback(async (pageNumber) => {
-    const data = await getFeed(pageNumber);
-    setPosts((prev) => (pageNumber === 0 ? data.content : [...prev, ...data.content]));
+    const data = await fetcher(pageNumber);
+    setItems((prev) => (pageNumber === 0 ? data.content : [...prev, ...data.content]));
     setPage(data.number);
     setLast(data.last);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -29,7 +34,7 @@ export default function FeedPage() {
       try {
         await loadPage(0);
       } catch (err) {
-        if (active) setError(extractErrorMessage(err, "Could not load your feed"));
+        if (active) setError(extractErrorMessage(err, "Could not load posts"));
       } finally {
         if (active) setLoading(false);
       }
@@ -39,7 +44,7 @@ export default function FeedPage() {
     };
   }, [loadPage]);
 
-  async function handleLoadMore() {
+  async function loadMore() {
     setLoadingMore(true);
     try {
       await loadPage(page + 1);
@@ -50,52 +55,84 @@ export default function FeedPage() {
     }
   }
 
+  return { items, setItems, last, loading, loadingMore, error, loadMore };
+}
+
+export default function FeedPage() {
+  const { user } = useAuth();
+  const [tab, setTab] = useState("Following");
+
+  const following = useFeedSource((p) => getFeed(p));
+  const global = useFeedSource((p) => getTimeline(p));
+
   function handleCreated(post) {
-    setPosts((prev) => [post, ...prev]);
+    following.setItems((prev) => [post, ...prev]);
   }
 
   function handleDeleted(postId) {
-    setPosts((prev) => prev.filter((p) => p.id !== postId));
+    following.setItems((prev) => prev.filter((p) => p.id !== postId));
   }
+
+  const active = tab === "Following" ? following : global;
 
   return (
     <Layout>
       <CreatePostForm onCreated={handleCreated} />
 
-      {error && <div className="error-banner">{error}</div>}
+      <nav className="glass flex p-1">
+        {TABS.map((name) => (
+          <button
+            key={name}
+            onClick={() => setTab(name)}
+            className={`flex-1 rounded-xl py-2 text-sm font-medium transition ${
+              tab === name
+                ? "bg-white/10 text-white shadow-inner"
+                : "text-slate-500 hover:text-slate-300"
+            }`}
+          >
+            {name}
+          </button>
+        ))}
+      </nav>
 
-      {loading ? (
+      {active.error && <div className="error-banner">{active.error}</div>}
+
+      {active.loading ? (
         <>
           <PostSkeleton />
           <PostSkeleton />
           <PostSkeleton />
         </>
-      ) : posts.length === 0 ? (
+      ) : active.items.length === 0 ? (
         <div className="glass p-10 text-center">
           <p className="font-display text-lg font-semibold text-white">
-            Your feed is quiet
+            {tab === "Following" ? "Your feed is quiet" : "Nothing from the network yet"}
           </p>
           <p className="mt-1.5 text-sm text-slate-400">
-            Create your first post above, or follow people to see theirs.
+            {tab === "Following"
+              ? "Create your first post above, or follow people to see theirs."
+              : "Add peer servers on the Network page, then sync to see their posts here."}
           </p>
         </div>
       ) : (
         <>
-          {posts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              currentUserId={user?.id}
-              onDeleted={handleDeleted}
-            />
-          ))}
-          {!last && (
+          {tab === "Following"
+            ? active.items.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  currentUserId={user?.id}
+                  onDeleted={handleDeleted}
+                />
+              ))
+            : active.items.map((post) => <RemotePostCard key={post.id} post={post} />)}
+          {!active.last && (
             <button
-              onClick={handleLoadMore}
-              disabled={loadingMore}
+              onClick={active.loadMore}
+              disabled={active.loadingMore}
               className="btn-ghost w-full"
             >
-              {loadingMore ? "Loading…" : "Load more"}
+              {active.loadingMore ? "Loading…" : "Load more"}
             </button>
           )}
         </>
