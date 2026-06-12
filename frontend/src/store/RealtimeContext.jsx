@@ -4,9 +4,17 @@ import { getAccessToken } from "../api/tokenStore";
 import { getPresence, getUnreadCount } from "../api/notifications";
 import { useAuth } from "../hooks/useAuth";
 
-// ws(s)://host/ws derived from the API base URL.
+// ws(s)://host/ws derived from the API base URL. A relative base (e.g.
+// "/api/v1" behind the nginx proxy) resolves against the page's own origin.
 const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
-const wsUrl = apiBase.replace(/\/api\/v1\/?$/, "").replace(/^http/, "ws") + "/ws";
+const stripped = apiBase.replace(/\/api\/v1\/?$/, "");
+const wsUrl = /^https?:/.test(apiBase)
+  ? stripped.replace(/^http/, "ws") + "/ws"
+  : (window.location.protocol === "https:" ? "wss" : "ws") +
+    "://" +
+    window.location.host +
+    stripped +
+    "/ws";
 
 export const RealtimeContext = createContext(null);
 

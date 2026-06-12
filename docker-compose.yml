@@ -1,3 +1,10 @@
+# Full DSM stack. Quickstart:
+#   docker compose up --build          → frontend :3000, backend :8080, postgres :5432
+#   docker compose --profile federation up --build
+#                                      → adds a second node (backend-b :8081) to demo
+#                                        federation; add peer http://backend-b:8080 in the UI
+# Redis arrives in Phase 11 (feed caching) — no container for it yet.
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -7,7 +14,9 @@ services:
       POSTGRES_USER: dsm
       POSTGRES_PASSWORD: dsm_dev_password
     ports:
-      - "5432:5432"
+      # Host port 5433 by default so a locally installed PostgreSQL on 5432
+      # doesn't clash; containers talk to "postgres:5432" regardless.
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
     volumes:
       - dsm_postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -16,5 +25,93 @@ services:
       timeout: 5s
       retries: 5
 
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: dsm-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/dsm
+      SPRING_DATASOURCE_USERNAME: dsm
+      SPRING_DATASOURCE_PASSWORD: dsm_dev_password
+      JWT_SECRET: local-docker-jwt-secret-change-me-in-production-1234
+      # Required for REST CORS AND the WebSocket handshake origin check.
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173
+      FEDERATION_SERVER_NAME: node-a
+      FEDERATION_SELF_BASE_URL: http://backend:8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  frontend:
+    build:
+      context: frontend
+      args:
+        VITE_API_BASE_URL: /api/v1
+    container_name: dsm-frontend
+    environment:
+      BACKEND_ORIGIN: http://backend:8080
+      NGINX_ENVSUBST_FILTER: ^BACKEND_ORIGIN$
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  # ---- Optional second node for the federation demo (--profile federation) ----
+
+  postgres-b:
+    profiles: ["federation"]
+    image: postgres:16-alpine
+    container_name: dsm-postgres-b
+    environment:
+      POSTGRES_DB: dsm
+      POSTGRES_USER: dsm
+      POSTGRES_PASSWORD: dsm_dev_password
+    volumes:
+      - dsm_postgres_b_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dsm -d dsm"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend-b:
+    profiles: ["federation"]
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: dsm-backend-b
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-b:5432/dsm
+      SPRING_DATASOURCE_USERNAME: dsm
+      SPRING_DATASOURCE_PASSWORD: dsm_dev_password
+      JWT_SECRET: local-docker-jwt-secret-change-me-in-production-1234
+      FEDERATION_SERVER_NAME: node-b
+      FEDERATION_SELF_BASE_URL: http://backend-b:8080
+    # Host port so node B can be seeded with users/posts via curl.
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres-b:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
 volumes:
   dsm_postgres_data:
+  dsm_postgres_b_data:
