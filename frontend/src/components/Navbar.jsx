@@ -1,6 +1,8 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { useRealtime } from "../store/RealtimeContext";
 import Avatar from "./Avatar";
+import NotificationBell from "./NotificationBell";
 import { FeedIcon, LogoMark, LogoutIcon, NetworkIcon, SearchIcon } from "./icons";
 
 function navLinkClass({ isActive }) {
@@ -11,6 +13,7 @@ function navLinkClass({ isActive }) {
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { presence } = useRealtime();
   const navigate = useNavigate();
 
   async function handleLogout() {
@@ -45,6 +48,16 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
+          {presence.count > 0 && (
+            <span
+              title={presence.usernames.join(", ")}
+              className="hidden items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-300 md:flex"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
+              {presence.count} online
+            </span>
+          )}
+          <NotificationBell />
           {user && (
             <Link
               to={`/profile/${user.username}`}

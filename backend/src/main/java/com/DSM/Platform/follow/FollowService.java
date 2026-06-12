@@ -2,6 +2,8 @@ package com.DSM.Platform.follow;
 
 import com.DSM.Platform.common.exception.ApiException;
 import com.DSM.Platform.follow.dto.FollowResponse;
+import com.DSM.Platform.notification.NotificationService;
+import com.DSM.Platform.notification.NotificationType;
 import com.DSM.Platform.security.AuthenticatedUser;
 import com.DSM.Platform.user.User;
 import com.DSM.Platform.user.UserRepository;
@@ -20,10 +22,16 @@ public class FollowService {
 
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
-    public FollowService(FollowRepository followRepository, UserRepository userRepository) {
+    public FollowService(
+            FollowRepository followRepository,
+            UserRepository userRepository,
+            NotificationService notificationService
+    ) {
         this.followRepository = followRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -37,6 +45,7 @@ public class FollowService {
         if (!followRepository.existsByFollowerIdAndFollowingId(principal.id(), target.getId())) {
             User follower = findActiveUserById(principal.id());
             followRepository.save(new Follow(follower, target));
+            notificationService.notify(target, follower, NotificationType.FOLLOW, null);
         }
 
         return buildResponse(target, true);

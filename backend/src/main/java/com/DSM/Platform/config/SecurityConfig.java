@@ -78,6 +78,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/federation/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/federation/announce").permitAll()
                         .requestMatchers("/api/v1/federation/**").authenticated()
+                        // WebSocket handshake is open; the STOMP CONNECT frame is
+                        // authenticated by JwtChannelInterceptor.
+                        .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/actuator/health", "/h2-console/**").permitAll()
                         .anyRequest().authenticated()
                 )
