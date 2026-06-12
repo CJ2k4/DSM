@@ -3,12 +3,14 @@ import { Link } from "react-router-dom";
 import { addComment, deleteComment, getComments } from "../api/comments";
 import { extractErrorMessage } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
+import { useRealtime } from "../store/RealtimeContext";
 import { relativeTime } from "../utils/time";
 import Avatar from "./Avatar";
 import { TrashIcon } from "./icons";
 
 export default function CommentSection({ postId, postOwnerId, onCountChange }) {
   const { user } = useAuth();
+  const { connected, subscribeToComments } = useRealtime();
   const [comments, setComments] = useState([]);
   const [page, setPage] = useState(0);
   const [last, setLast] = useState(true);
@@ -43,6 +45,20 @@ export default function CommentSection({ postId, postOwnerId, onCountChange }) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [postId]);
+
+  // While the thread is open, append comments others post in real time.
+  // Own comments are skipped — they're added on submit already.
+  useEffect(() => {
+    if (!connected) return undefined;
+    return subscribeToComments(postId, (comment) => {
+      if (comment.author?.id === user?.id) return;
+      setComments((prev) =>
+        prev.some((c) => c.id === comment.id) ? prev : [...prev, comment]
+      );
+      onCountChange?.(1);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connected, postId, subscribeToComments, user?.id]);
 
   async function handleLoadMore() {
     setLoadingMore(true);

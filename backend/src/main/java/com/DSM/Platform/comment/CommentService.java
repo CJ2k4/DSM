@@ -3,12 +3,15 @@ package com.DSM.Platform.comment;
 import com.DSM.Platform.comment.dto.CommentResponse;
 import com.DSM.Platform.comment.dto.CreateCommentRequest;
 import com.DSM.Platform.common.exception.ApiException;
+import com.DSM.Platform.notification.NotificationService;
+import com.DSM.Platform.notification.NotificationType;
 import com.DSM.Platform.post.Post;
 import com.DSM.Platform.post.PostRepository;
 import com.DSM.Platform.security.AuthenticatedUser;
 import com.DSM.Platform.user.User;
 import com.DSM.Platform.user.UserRepository;
 import com.DSM.Platform.user.UserStatus;
+import com.DSM.Platform.websocket.RealtimePublisher;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,15 +25,21 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
+    private final RealtimePublisher realtimePublisher;
 
     public CommentService(
             CommentRepository commentRepository,
             PostRepository postRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            NotificationService notificationService,
+            RealtimePublisher realtimePublisher
     ) {
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
+        this.realtimePublisher = realtimePublisher;
     }
 
     @Transactional
@@ -39,8 +48,12 @@ public class CommentService {
         User author = findActiveUserById(principal.id());
 
         Comment comment = commentRepository.save(new Comment(post, author, request.content().trim()));
+        CommentResponse response = CommentResponse.from(comment);
 
-        return CommentResponse.from(comment);
+        notificationService.notify(post.getAuthor(), author, NotificationType.COMMENT, postId);
+        realtimePublisher.broadcastComment(postId, response);
+
+        return response;
     }
 
     @Transactional(readOnly = true)

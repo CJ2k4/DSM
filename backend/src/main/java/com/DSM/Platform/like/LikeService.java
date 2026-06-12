@@ -2,6 +2,8 @@ package com.DSM.Platform.like;
 
 import com.DSM.Platform.common.exception.ApiException;
 import com.DSM.Platform.like.dto.LikeResponse;
+import com.DSM.Platform.notification.NotificationService;
+import com.DSM.Platform.notification.NotificationType;
 import com.DSM.Platform.post.Post;
 import com.DSM.Platform.post.PostRepository;
 import com.DSM.Platform.security.AuthenticatedUser;
@@ -19,11 +21,18 @@ public class LikeService {
     private final LikeRepository likeRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
-    public LikeService(LikeRepository likeRepository, PostRepository postRepository, UserRepository userRepository) {
+    public LikeService(
+            LikeRepository likeRepository,
+            PostRepository postRepository,
+            UserRepository userRepository,
+            NotificationService notificationService
+    ) {
         this.likeRepository = likeRepository;
         this.postRepository = postRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -33,6 +42,7 @@ public class LikeService {
         if (!likeRepository.existsByPostIdAndUserId(postId, principal.id())) {
             User user = findActiveUserById(principal.id());
             likeRepository.save(new Like(post, user));
+            notificationService.notify(post.getAuthor(), user, NotificationType.LIKE, postId);
         }
 
         return buildResponse(postId, true);
