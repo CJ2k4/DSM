@@ -57,9 +57,10 @@ public class PostController {
 
     @GetMapping("/user/{username}")
     public Page<PostResponse> userPosts(
+            @AuthenticationPrincipal AuthenticatedUser principal,
             @PathVariable String username,
             @PageableDefault(size = 20) Pageable pageable
     ) {
-        return postService.getUserPosts(username, pageable);
+        return postService.getUserPosts(username, principal != null ? principal.id() : null, pageable);
     }
 }

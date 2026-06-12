@@ -20,8 +20,9 @@ each other, and interact across multiple cooperating servers.
 | 2 | Authentication (JWT, refresh-token rotation) | ✅ Done |
 | 3 | User system (profile, search) **+ Follow/unfollow** | ✅ Done |
 | 4 | Posts & Feed | ✅ Done |
-| 5 | Likes & comments, notifications | ⏳ Next |
-| 6–11 | Frontend, federation, real-time, deploy, etc. | 🔴 Not started |
+| 5 | Likes & comments (notifications deferred) | ✅ Done |
+| 6 | Frontend (React) | ⏳ Next |
+| 7–11 | Federation, real-time, deploy, etc. | 🔴 Not started |
 | — | Frontend (React) | 🔴 Skeleton only |
 
 All HTTP routes are versioned under **`/api/v1`**.
@@ -59,6 +60,8 @@ Feature-based packages under `com.DSM.Platform` (`backend/src/main/java/com/DSM/
 | `user` | `User` entity, profile get/update, user search |
 | `follow` | `Follow` entity, follow/unfollow, follower/following lists |
 | `post` | `Post` entity, create/delete post, personalized feed, per-user posts |
+| `like` | `Like` entity, like/unlike a post, like counts |
+| `comment` | `Comment` entity, add/list/delete comments (author or post-owner) |
 | `security` | JWT service, auth filter, `AuthenticatedUser` principal, entry-point/handlers |
 | `config` | `SecurityConfig`, JWT & CORS properties |
 | `common` | Global exception handler + standard API error envelope |
@@ -137,7 +140,8 @@ Behavior:
 
 **`CreatePostRequest`** — `content` (required, ≤1000), `imageUrl` (optional, ≤2048).
 **`PostResponse`** — `id`, `content`, `imageUrl`, `author` (`UserSearchResponse`),
-`createdAt`.
+`createdAt`, **`likeCount`**, **`commentCount`**, **`likedByMe`** (true only when the
+authenticated viewer has liked the post; `false` when unauthenticated).
 
 Behavior:
 - **Feed** = posts from users you follow **plus your own**, ACTIVE authors only,
@@ -147,7 +151,28 @@ Behavior:
 - **User posts** lists a single user's posts (newest first); `404 USER_NOT_FOUND` for
   unknown/inactive users.
 
-### 4.5 Error envelope (`ApiErrorResponse`)
+### 4.5 Likes & Comments — `PostController` neighbours (`LikeController`, `CommentController`)
+
+| Method | Path | Auth | Request | Success |
+|--------|------|------|---------|---------|
+| POST | `/api/v1/posts/{id}/like` | Yes | — | `200` + `LikeResponse` |
+| DELETE | `/api/v1/posts/{id}/like` | Yes | — | `200` + `LikeResponse` |
+| POST | `/api/v1/posts/{postId}/comments` | Yes | `CreateCommentRequest` | `201` + `CommentResponse` |
+| GET | `/api/v1/posts/{postId}/comments?page=&size=` | No | — | `200` + `Page<CommentResponse>` |
+| DELETE | `/api/v1/comments/{commentId}` | Yes (author or post owner) | — | `204` |
+
+**`LikeResponse`** — `postId`, `liked`, `likeCount`.
+**`CreateCommentRequest`** — `content` (required, ≤500).
+**`CommentResponse`** — `id`, `content`, `author` (`UserSearchResponse`), `createdAt`.
+
+Behavior:
+- **Like / unlike** are **idempotent**; unknown post → `404 POST_NOT_FOUND`.
+- **Comments** are listed oldest-first, paginated. A comment can be deleted by its
+  **author or the post's owner** → otherwise `403 COMMENT_FORBIDDEN`; missing comment →
+  `404 COMMENT_NOT_FOUND`. Hard delete.
+- Like/comment counts and `likedByMe` are surfaced on every `PostResponse`.
+
+### 4.6 Error envelope (`ApiErrorResponse`)
 
 Every error returns:
 
@@ -164,7 +189,7 @@ Every error returns:
 
 Common codes: `VALIDATION_ERROR`, `UNAUTHORIZED`, `USER_NOT_FOUND`,
 `CANNOT_FOLLOW_SELF`, `DISPLAY_NAME_REQUIRED`, `SEARCH_QUERY_TOO_SHORT`,
-`POST_NOT_FOUND`, `POST_FORBIDDEN`.
+`POST_NOT_FOUND`, `POST_FORBIDDEN`, `COMMENT_NOT_FOUND`, `COMMENT_FORBIDDEN`.
 
 ---
 
@@ -192,6 +217,14 @@ stored) · `expiresAt` · `revokedAt` (nullable) · `createdAt`. Supports rotati
 ### `posts` (`post/Post.java`)
 `id` (UUID, PK) · `author` (FK → users, lazy) · `content` (≤1000, required) ·
 `imageUrl` (≤2048, nullable) · `createdAt`. Indexes on `author_id` and `created_at`.
+
+### `likes` (`like/Like.java`)
+`id` (UUID, PK) · `post` (FK → posts, lazy) · `user` (FK → users, lazy) · `createdAt`.
+Unique constraint on `(post_id, user_id)`; indexes on both FK columns.
+
+### `comments` (`comment/Comment.java`)
+`id` (UUID, PK) · `post` (FK → posts, lazy) · `author` (FK → users, lazy) ·
+`content` (≤500, required) · `createdAt`. Indexes on `post_id` and `created_at`.
 
 ---
 
@@ -246,8 +279,10 @@ MockMvc `@SpringBootTest` integration suites run against in-memory H2:
 | `UserControllerIntegrationTest` | get/update profile, public profile, search, validation |
 | `FollowControllerIntegrationTest` | follow/unfollow + counts, idempotency, self-follow, lists, profile flags, 401, 404 |
 | `PostControllerIntegrationTest` | create post, feed (followed + own, excludes strangers), delete own/others (403)/unknown (404), user posts, validation, 401 |
+| `LikeControllerIntegrationTest` | like (count + `likedByMe`), idempotency, unlike, reflection in `PostResponse`, 404, 401 |
+| `CommentControllerIntegrationTest` | add/list comments, `commentCount`, author & post-owner delete, third-party 403, 404s, 401 |
 
-**23 tests, all passing.** Run:
+**34 tests, all passing.** Run:
 
 ```bash
 ./mvnw -f backend/pom.xml test
@@ -257,12 +292,12 @@ MockMvc `@SpringBootTest` integration suites run against in-memory H2:
 
 ## 9. Roadmap / Not Yet Built
 
-**Next — Phase 5: Likes & Comments**
-- `Like` and `Comment` entities tied to posts; like/unlike, add/list comments;
-  optional notifications.
+**Next — Phase 6: Frontend (React)**
+- Auth, feed, and profile screens (migrate to Vite + Tailwind per the original plan);
+  wire to the API with an Axios JWT interceptor.
 
 **Later phases**
-- Phase 6 — Frontend (Vite + Tailwind), auth/feed/profile screens.
+- Notifications (deferred from Phase 5) — likely alongside the WebSocket work.
 - Phase 7 — Federation layer (remote post/user sync via WebClient).
 - Phase 8 — WebSockets (live notifications/comments).
 - Phases 9–11 — Rate limiting, XSS sanitization, Docker/deploy, Cloudinary images,

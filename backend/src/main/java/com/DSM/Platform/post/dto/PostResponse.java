@@ -10,16 +10,22 @@ public record PostResponse(
         String content,
         String imageUrl,
         UserSearchResponse author,
-        Instant createdAt
+        Instant createdAt,
+        long likeCount,
+        long commentCount,
+        boolean likedByMe
 ) {
 
-    public static PostResponse from(Post post) {
+    public static PostResponse from(Post post, long likeCount, long commentCount, boolean likedByMe) {
         return new PostResponse(
                 post.getId(),
                 post.getContent(),
                 post.getImageUrl(),
                 UserSearchResponse.from(post.getAuthor()),
-                post.getCreatedAt()
+                post.getCreatedAt(),
+                likeCount,
+                commentCount,
+                likedByMe
         );
     }
 }

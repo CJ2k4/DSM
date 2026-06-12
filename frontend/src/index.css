@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    min-height: 100vh;
+  }
+
+  body {
+    @apply bg-[#07070b] font-sans text-slate-300 antialiased;
+  }
+
+  ::selection {
+    @apply bg-violet-500/40 text-white;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.25) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.2);
+    border-radius: 8px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer components {
+  /* Frosted-glass surface — the core card primitive. */
+  .glass {
+    @apply rounded-2xl border border-white/[0.07] bg-white/[0.04] shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl;
+  }
+  .glass-hover {
+    @apply transition duration-300 hover:border-white/[0.14] hover:bg-white/[0.06];
+  }
+
+  .field {
+    @apply w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-sm text-white placeholder-slate-500 transition focus:border-violet-400/50 focus:bg-white/[0.05] focus:outline-none focus:ring-2 focus:ring-violet-500/20;
+  }
+  .field-label {
+    @apply mb-1.5 block text-xs font-medium uppercase tracking-wider text-slate-400;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-violet-500/20 transition hover:shadow-violet-500/40 hover:brightness-110 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-white/20 hover:bg-white/5 hover:text-white active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40;
+  }
+
+  .error-banner {
+    @apply rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-300;
+  }
+
+  /* Gradient brand text. */
+  .brand-text {
+    @apply bg-gradient-to-r from-indigo-300 via-violet-300 to-cyan-300 bg-clip-text text-transparent;
+  }
+
+  .skeleton {
+    @apply animate-pulse rounded-lg bg-white/[0.06];
+  }
+}
